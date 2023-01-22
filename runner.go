@@ -1,6 +1,10 @@
 package trex
 
-import "testing"
+import (
+	"reflect"
+	"strings"
+	"testing"
+)
 
 type runner struct {
 	t     *testing.T
@@ -15,8 +19,24 @@ func runnable(suite Suite) *runner {
 
 func (r *runner) run(t *testing.T) {
 	r.t = t
-	for r.test(r.suite.Next()) {
+	r.tests()
+}
+
+func (r *runner) tests() {
+	for i, suiteT := 0, reflect.TypeOf(r.suite); i < suiteT.NumMethod(); i++ {
+		if method := suiteT.Method(i); strings.HasPrefix(method.Name, "Test") {
+			r.test(method.Func)
+		}
 	}
+}
+
+func (r *runner) test(test Test) {
+	defer r.teardown()
+	r.setup()
+	test.Call([]reflect.Value{
+		reflect.ValueOf(r.suite),
+		reflect.ValueOf(r.t),
+	})
 }
 
 func (r *runner) setup() {
@@ -29,17 +49,4 @@ func (r *runner) teardown() {
 	if err := r.suite.Teardown(); err != nil {
 		r.t.Fatalf("test case teardown failed: %s", err)
 	}
-}
-
-func (r *runner) test(test Test) (ok bool) {
-	if ok = test != nil; ok {
-		r.testWithSetupAndTeardown(test)
-	}
-	return
-}
-
-func (r *runner) testWithSetupAndTeardown(test Test) {
-	defer r.teardown()
-	r.setup()
-	test(r.t)
 }
