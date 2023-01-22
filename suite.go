@@ -1,16 +1,11 @@
 package trex
 
-import (
-	"reflect"
-	"testing"
-)
+import "testing"
 
 type Suite interface {
-	Setup() error
-	Teardown() error
+	Setup()
+	Teardown()
 }
-
-type Test = reflect.Value // func(*Suite, *testing.T)
 
 func Run(t *testing.T, suite Suite) {
 	runnable(suite).run(t)
@@ -18,5 +13,5 @@ func Run(t *testing.T, suite Suite) {
 
 type BasicSuite struct{}
 
-func (s *BasicSuite) Setup() error    { return nil }
-func (s *BasicSuite) Teardown() error { return nil }
+func (s *BasicSuite) Setup()    {}
+func (s *BasicSuite) Teardown() {}

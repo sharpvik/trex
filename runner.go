@@ -6,6 +6,8 @@ import (
 	"testing"
 )
 
+type testFunc = reflect.Value // func(*Suite, *testing.T)
+
 type runner struct {
 	t     *testing.T
 	suite Suite
@@ -23,30 +25,20 @@ func (r *runner) run(t *testing.T) {
 }
 
 func (r *runner) tests() {
-	for i, suiteT := 0, reflect.TypeOf(r.suite); i < suiteT.NumMethod(); i++ {
-		if method := suiteT.Method(i); strings.HasPrefix(method.Name, "Test") {
-			r.test(method.Func)
+	for i, suite := 0, reflect.TypeOf(r.suite); i < suite.NumMethod(); i++ {
+		if method := suite.Method(i); strings.HasPrefix(method.Name, "Test") {
+			r.t.Run(method.Name, r.test(method.Func))
 		}
 	}
 }
 
-func (r *runner) test(test Test) {
-	defer r.teardown()
-	r.setup()
-	test.Call([]reflect.Value{
-		reflect.ValueOf(r.suite),
-		reflect.ValueOf(r.t),
-	})
-}
-
-func (r *runner) setup() {
-	if err := r.suite.Setup(); err != nil {
-		r.t.Fatalf("test case setup failed: %s", err)
-	}
-}
-
-func (r *runner) teardown() {
-	if err := r.suite.Teardown(); err != nil {
-		r.t.Fatalf("test case teardown failed: %s", err)
+func (r *runner) test(test testFunc) func(*testing.T) {
+	return func(t *testing.T) {
+		t.Cleanup(r.suite.Teardown)
+		r.suite.Setup()
+		test.Call([]reflect.Value{
+			reflect.ValueOf(r.suite),
+			reflect.ValueOf(t),
+		})
 	}
 }

@@ -11,9 +11,16 @@ type Suite struct {
 	variable int
 }
 
-func (s *Suite) Setup() error {
+func TestSuite(t *testing.T) {
+	trex.Run(t, &Suite{})
+}
+
+func (s *Suite) Setup() {
 	s.variable = 42
-	return nil
+}
+
+func (s *Suite) Teardown() {
+	s.variable = 0
 }
 
 func (s *Suite) TestFortyTwo(t *testing.T) {
@@ -26,8 +33,4 @@ func (s *Suite) TestIsEven(t *testing.T) {
 	if s.variable%2 != 0 {
 		t.Fatalf("variable value %d is odd; want even", s.variable)
 	}
-}
-
-func TestSuite(t *testing.T) {
-	trex.Run(t, &Suite{})
 }
