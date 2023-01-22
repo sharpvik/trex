@@ -3,12 +3,20 @@ package trex
 import "testing"
 
 type Suite interface {
-	T() *testing.T
 	Setup() error
 	Teardown() error
 	Next() Test
 }
 
-func Run(suite Suite) {
-	runnable(suite).run()
+type Test func(*testing.T)
+
+func Run(t *testing.T, suite Suite) {
+	runnable(suite).run(t)
 }
+
+type BasicSuite struct {
+	queue[Test]
+}
+
+func (s *BasicSuite) Setup() error    { return nil }
+func (s *BasicSuite) Teardown() error { return nil }

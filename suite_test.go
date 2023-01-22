@@ -11,10 +11,8 @@ type Suite struct {
 	variable int
 }
 
-func NewSuite(t *testing.T) *Suite {
-	s := &Suite{
-		BasicSuite: trex.Basic(t),
-	}
+func NewSuite() *Suite {
+	s := &Suite{}
 	s.Schedule(s.TestFortyTwo)
 	return s
 }
@@ -24,12 +22,12 @@ func (s *Suite) Setup() error {
 	return nil
 }
 
-func (s *Suite) TestFortyTwo() {
+func (s *Suite) TestFortyTwo(t *testing.T) {
 	if s.variable != 42 {
-		s.T().Fatalf("variable value mismatch: want 42; got %d", s.variable)
+		t.Fatalf("variable value mismatch: want 42; got %d", s.variable)
 	}
 }
 
 func TestSuite(t *testing.T) {
-	trex.Run(NewSuite(t))
+	trex.Run(t, NewSuite())
 }

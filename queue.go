@@ -4,10 +4,6 @@ type queue[T any] struct {
 	items []T
 }
 
-func newQueue[T any]() *queue[T] {
-	return &queue[T]{}
-}
-
 func (q *queue[T]) Schedule(item T) {
 	q.items = append(q.items, item)
 }
